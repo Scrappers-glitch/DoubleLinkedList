@@ -1,23 +1,21 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <DoubleLinkedList.h>
+#include <iostream>
 
-//Define the head, tail & length of the linkedlist
+Node* head = nullptr;
+Node* tail = nullptr;
+
 int length = 0;
-Node *head = NULL, *tail = NULL;
 
-void Add(int data)
-{
-    Node *newNode = (Node *) malloc(sizeof(Node));
+void Add(int data) {
+    Node *newNode = new Node();
     newNode->Data = data;
-    newNode->Prev = newNode->Next = NULL;
-
-    if(head == NULL) // linked list is empty
-    {   //first time call...
+    newNode->Prev = newNode->Next = nullptr;
+    // linked list is empty
+    if(head == NULL){   //first time call...
         head = tail = newNode;
-    }
-    else
-    {   
+    }else{   
         //add a new item after the old tail
         tail->Next = newNode;
         //assign the tail to the Prev pointer of the newNode Pointer
@@ -30,8 +28,7 @@ void Add(int data)
     newNode->index = length++;
 }
 
-void Display()
-{
+void Display() {
     Node *current = head;
 
     while(current != NULL)
@@ -42,63 +39,45 @@ void Display()
     printf("\n");
 }
 
-Node* Search(int data)
-{
+Node* Search(int data) {
     Node *current = head;
 
-    while(current != NULL)
-    {
-        if(current->Data == data)
-        {
+    while(current != NULL){
+        if(current->Data == data){
             return current;
         }
-
         current = current->Next;
     }
 
     return NULL;
 }
-/**
-* swap the Next with the current Node index 
-*    starting from the start index.
-* @param startIndex value reference to the start index where the iterator would apply the indices swapping operation.
-*/
-void updateIndices(){
+
+void updateIndices(Node* start) {
     int index = 0;
-    Node* iterator = head;
+    Node* iterator = start;
     while(iterator != NULL && index < length){
         iterator->index = index++;
         iterator = iterator->Next;
     }
 }
-void Delete(int data)
-{   
-    //deep data copy
+void Delete(int data) {   
+    //shallow data copy
     Node *pDelete = Search(data);
 
     if(pDelete == NULL)
         return ;
     
-    
-    if(pDelete == head)
-    {
-        if(pDelete == tail)
-        {
-            head = tail = NULL;
-        }
-        else
-        {
+    if(pDelete == head){
+        if(pDelete == tail){
+            head = tail = new Node();
+        }else{
             head = pDelete->Next;
-            head->Prev = NULL;
+            head->Prev = new Node();
         }
-    }
-    else if(pDelete == tail)
-    {
+    }else if(pDelete == tail){
         tail = pDelete->Prev;
-        tail->Next = NULL;
-    }
-    else
-    {
+        tail->Next = new Node();
+    }else{
         //assign the next of the previousNode to the next of the pDelete Node, dissolving the pDelete Node from the head
         Node* previousNode = pDelete->Prev;
         previousNode->Next = pDelete->Next;
@@ -110,17 +89,12 @@ void Delete(int data)
     //remove one item from the length
     --length;
     //update the indices in accordance to the new length
-    updateIndices();
+    updateIndices(head);
     free(pDelete);
     pDelete = NULL;
    
 }
 
-/**
-* inserts data in the node after this one.
-* @param afterData the data of the node that we want to add after it.
-* @param data the proposed data to fill inside the wanted node.
-*/
 void InsertAfter(int afterData, int data){
    //get the node to add after it
    Node* pNode = Search(afterData);
@@ -137,15 +111,12 @@ void InsertAfter(int afterData, int data){
    //advance the length by 1 new Node
    ++length;
    //update the indices in accordance to the new length
-   updateIndices();
+   updateIndices(head);
 }
 int GetItemsCount(){
     return length;
 }
-/**
-* gets the node by an index
-* @param index.
-*/
+
 Node* GetByIndex(int index){
     if(index >= length){
             perror("Specified Node with this index, doesn't exist !, ArrayIndexOutOfBoundsException");
@@ -154,11 +125,9 @@ Node* GetByIndex(int index){
     //mark the head node as the start --Shallow Copy of Data
     Node* node = head;
     //loop over the list as long as the proceeding node of this node is available
-    while(node != NULL)
-    {   
+    while(node != NULL){   
         //check if indices match
-        if(node->index == index)
-        {
+        if(node->index == index){
             return node;
         }
         //shallow copy the next node to this pointer
@@ -169,4 +138,54 @@ Node* GetByIndex(int index){
 }
 
 
+void Reverse(){
+    //shallow copy(reference vals) tail Node to a cursor pointer pointing to the same storage
+    Node* retroCursor = tail;
+    //A new LinkedList to hold the reversed values of the current LinkedList
+    Node* start = new Node();
+    Node* end = new Node();
+    //prepare & format data
+    start->Data = end->Data = int();
+    start->Next = start->Prev = nullptr;
+    end->Next = end->Prev = nullptr;
+    //an index for the new LinkedList
+    int index = 0;
+    //loop over the main linkedList in a retrograde fashion using the reference value retroCursor
+    while(retroCursor != NULL && index < GetItemsCount()){
+       //create a new Node memory address
+       Node* node = new Node();
+       node->Next = node->Prev = nullptr;
+       //fill the data with current retrograde fashioned data
+       node->Data = retroCursor->Data;
+       //if the current item is the first in the new list
+        if(index == 0){
+            start = end = node;
+        }else{
+            //if the current node isn't the first, then add the new node after the oldEnd & assign the OldEnd as the Prev then assign the newNode to the newEnd overriding the old one from the endPosition.
+            end->Next = node;
+            node->Prev = end;
+            end = node;
+        }
+        //advance retroCursor a little bit forward
+        retroCursor = retroCursor->Prev;
+        //fill the index for the current node, then increment index
+        node->index = index++;
+    }
+    //copy values to the main LinkedList
+   copyVals(start);
+}
+void copyVals(Node* start){
+    Node* cursor = new Node();
+    cursor->Next = cursor->Prev = new Node();
+    cursor->Data = int();
+    for(int i = 0; i < length; i++){
+         cursor = GetByIndex(i);
+         //copy node data to the main list
+         cursor->Data = start->Data;
+         cursor->Next = start->Next;
+         cursor->Prev = cursor->Next;
+         //advance on the reversed list
+         start = start->Next;
+    }
+}
 
