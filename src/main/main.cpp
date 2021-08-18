@@ -30,6 +30,10 @@ int main () {
     //test getByIndex
     std::cout << GetByIndex(2)->Data << std::endl; 
     //test reverse --WIP
-
+    Reverse();
+    Display();
+    //test getByIndex
+    std::cout << GetByIndex(2)->Data << std::endl; 
+    
     return 0;
 }
